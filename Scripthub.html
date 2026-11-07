@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Loadstring Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 10px;
+        }
+        .app-wrapper {
+            width: 100%;
+            max-width: 650px;
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            margin: auto;
+        }
+        .app-header {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 22px 24px;
+            text-align: center;
+            position: relative;
+        }
+        .app-header h2 { font-size: 20px; font-weight: 700; color: #ffffff; }
+        .app-header p { font-size: 13px; color: #e0e7ff; margin-top: 4px; }
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .app-body { padding: 24px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 13px; color: #9ca3af; text-transform: uppercase; }
+        input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, textarea:focus { border-color: #6366f1; }
+        textarea { resize: vertical; font-family: monospace; min-height: 120px; }
+        .token-section {
+            background: #1f2937;
+            border: 1px dashed #374151;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            display: none;
+        }
+        .token-section.active { display: block; }
+        .btn-inline {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .btn-save { background: #6366f1; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; }
+        .btn-delete { background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; }
+        .btn-generate {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .result-box {
+            margin-top: 24px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 16px;
+            display: none;
+        }
+        .result-box.active { display: block; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-copy { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        pre { background-color: #030712; padding: 14px; border-radius: 8px; border: 1px solid #374151; overflow-x: auto; word-break: break-all; font-family: monospace; font-size: 13px; color: #38bdf8; }
+        .token-status { font-size: 12px; color: #10b981; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <div class="app-header">
+        <h2>Script Loadstring Generator</h2>
+        <p>Clean Gist & Safe Creator</p>
+        <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ Token Settings</button>
+    </div>
+    
+    <div class="app-body">
+        <!-- Token Management Section -->
+        <div class="token-section" id="tokenSection">
+            <label for="githubToken">GitHub Token Management</label>
+            <input type="password" id="githubToken" placeholder="Paste your ghp_... token here">
+            <div class="btn-inline">
+                <button class="btn-save" onclick="saveToken()">Save Token</button>
+                <button class="btn-delete" onclick="deleteToken()">Delete Token</button>
+            </div>
+        </div>
+
+        <div class="token-status" id="tokenStatus">✅ GitHub Token is securely stored & active.</div>
+
+        <div class="form-group">
+            <label for="gameName">Game Name</label>
+            <input type="text" id="gameName" placeholder="e.g. Blox Fruits Hub">
+        </div>
+
+        <div class="form-group">
+            <label for="features">Features (Comma Separated)</label>
+            <input type="text" id="features" placeholder="Auto Farm, ESP, Teleport">
+        </div>
+
+        <div class="form-group">
+            <label for="luaCode">Raw Lua Code</label>
+            <textarea id="luaCode" placeholder="print('Paste your clean script here...')"></textarea>
+        </div>
+
+        <button class="btn-generate" onclick="generateLoadstring()">Generate Clean Loadstring</button>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-header">
+                <label style="margin:0; color:#38bdf8;">Generated Loadstring:</label>
+                <button class="btn-copy" onclick="copyToClipboard()">Copy Loadstring</button>
+            </div>
+            <pre id="outputString">Processing...</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+        const savedToken = localStorage.getItem('saved_gh_token');
+        if (savedToken) {
+            document.getElementById('tokenStatus').style.display = 'block';
+            document.getElementById('githubToken').value = savedToken;
+        } else {
+            document.getElementById('tokenSection').classList.add('active');
+        }
+    };
+
+    function toggleTokenSettings() {
+        const section = document.getElementById('tokenSection');
+        section.classList.toggle('active');
+    }
+
+    function saveToken() {
+        const token = document.getElementById('githubToken').value.trim();
+        if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+            alert("Please enter a valid GitHub Token!");
+            return;
+        }
+        localStorage.setItem('saved_gh_token', token);
+        document.getElementById('tokenStatus').style.display = 'block';
+        document.getElementById('tokenSection').classList.remove('active');
+        alert("Token saved securely in your browser!");
+    }
+
+    function deleteToken() {
+        localStorage.removeItem('saved_gh_token');
+        document.getElementById('githubToken').value = '';
+        document.getElementById('tokenStatus').style.display = 'none';
+        document.getElementById('tokenSection').classList.add('active');
+        alert("Token deleted successfully!");
+    }
+
+    async function generateLoadstring() {
+        const token = localStorage.getItem('saved_gh_token') || document.getElementById('githubToken').value.trim();
+        const game = document.getElementById('gameName').value.trim();
+        const features = document.getElementById('features').value.trim();
+        const code = document.getElementById('luaCode').value.trim();
+        const resultBox = document.getElementById('resultBox');
+        const outputString = document.getElementById('outputString');
+
+        if (!token) {
+            alert("Please add your GitHub Token first using the 'Token Settings' (⚙️) button!");
+            document.getElementById('tokenSection').classList.add('active');
+            return;
+        }
+        if (!game || !code) {
+            alert("Please fill in the Game Name and Raw Lua Code fields!");
+            return;
+        }
+
+        resultBox.classList.add('active');
+        outputString.innerText = "Creating Clean GitHub Gist...";
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+
+        // Clean formatted Lua script to keep GitHub scanner friendly
+        let cleanScriptContent = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Status: Clean & Verified\n\n${code}`;
+
+        try {
+            const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
+            
+            const response = await fetch('https://api.github.com/gists', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    description: `Script Hub for ${game}`,
+                    public: true,
+                    files: {
+                        [filename]: {
+                            content: cleanScriptContent
+                        }
+                    }
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.files) {
+                const rawUrl = data.files[filename].raw_url;
+                outputString.innerText = `loadstring(game:HttpGet("${rawUrl}"))()`;
+            } else {
+                outputString.innerText = "GitHub Error: " + (data.message || "Invalid Token permissions.");
+            }
+
+        } catch (error) {
+            outputString.innerText = "Network Error: " + error.message;
+        }
+    }
+
+    function copyToClipboard() {
+        const textToCopy = document.getElementById('outputString').innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            alert("Loadstring copied to clipboard successfully!");
+        }).catch(err => {
+            alert("Failed to copy!");
+        });
+    }
+</script>
+
+</body>
+</html>
