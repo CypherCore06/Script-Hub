@@ -68,9 +68,9 @@
             padding: 16px;
             border-radius: 10px;
             margin-bottom: 18px;
-            display: none;
+            display: none; /* Default hidden */
         }
-        .token-section.active { display: block; }
+        .token-section.active { display: block !important; }
         .btn-inline {
             display: flex;
             gap: 10px;
@@ -174,7 +174,11 @@
 
     function toggleTokenSettings() {
         const section = document.getElementById('tokenSection');
-        section.classList.toggle('active');
+        if (section.classList.contains('active')) {
+            section.classList.remove('active');
+        } else {
+            section.classList.add('active');
+        }
     }
 
     function saveCredentials() {
@@ -195,7 +199,7 @@
         
         document.getElementById('tokenStatus').style.display = 'block';
         document.getElementById('tokenSection').classList.remove('active');
-        alert("Credentials saved securely in your browser cookies/storage!");
+        alert("Credentials saved securely in your browser!");
     }
 
     function deleteCredentials() {
@@ -229,15 +233,14 @@
         }
 
         resultBox.classList.add('active');
-        outputString.innerText = "1. Creating Gist & Auto-Generating LootLabs Link...";
+        outputString.innerText = "1. Creating Gist & Generating LootLabs Link...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
         try {
-            // Step 1: Create Gist for the raw code payload first
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
             let encodedPayload = btoa(unescape(encodeURIComponent(code)));
             
-            let tempGistContent = `-- // Game: ${game}\n-- // Encrypted Payload\nlocal _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
+            let tempGistContent = `-- // Game: ${game}\n-- // Payload\nlocal _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
 
             const gistResponse = await fetch('https://api.github.com/gists', {
                 method: 'POST',
@@ -262,11 +265,9 @@
 
             const rawGistUrl = gistData.files[filename].raw_url;
 
-            // Step 2: Automatically generate LootLabs monetized link using API
-            outputString.innerText = "2. Connecting with LootLabs API for auto-monetization...";
+            outputString.innerText = "2. Connecting with LootLabs API...";
             
-            // LootLabs API endpoint for link creation (Standard Creator API)
-            const lootResponse = await这样做: fetch('https://creators.lootlabs.gg/api/links', {
+            const lootResponse = await fetch('https://creators.lootlabs.gg/api/links', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${lootLabsApi}`,
@@ -278,40 +279,35 @@
                 })
             });
 
-            // Fallback or Direct link structure if API responds
             let finalKeyLink = "https://loot-link.com/s?default";
             if (lootResponse.ok) {
                 const lootData = await lootResponse.json();
                 finalKeyLink = lootData.short_url || lootData.url || rawGistUrl;
             } else {
-                // If API key is custom/restricted, use a placeholder wrapper or manual target fallback
                 finalKeyLink = `https://loot-link.com/s?target=${encodeURIComponent(rawGistUrl)}`;
             }
 
-            // Step 3: Build the final Smart Wrapper script that goes to Rscripts
             let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Secured & Monetized Hub\n\n`;
             
             let finalSmartScript = `${header}
 local KEY_SYSTEM_LINK = "${finalKeyLink}";
-local _verified = false; -- Can be linked to HWID or session check
+local _verified = false;
 
 if not _verified then
     print("==========================================");
-    print(" [HUB]: Please get your key from: " .. KEY_SYSTEM_LINK);
+    print(" [HUB]: Please get your key from: " + KEY_SYSTEM_LINK);
     print("==========================================");
     if setclipboard then
         setclipboard(KEY_SYSTEM_LINK);
-        print(" [HUB]: Key link copied to your clipboard automatically!");
+        print(" [HUB]: Key link copied to clipboard automatically!");
     end
     return;
 end
 
--- Decryption & Execution payload
 local _payload = "${encodedPayload}";
 local _decoded = (base64_decode or function(v) return v end)(_payload);
 loadstring(_decoded)();`;
 
-            // Update Gist with the final smart script content so it's fully self-contained
             await fetch(`https://api.github.com/gists/${gistData.id}`, {
                 method: 'PATCH',
                 headers: {
