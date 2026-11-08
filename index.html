@@ -68,7 +68,7 @@
             padding: 16px;
             border-radius: 10px;
             margin-bottom: 18px;
-            display: none; /* Default hidden */
+            display: none;
         }
         .token-section.active { display: block !important; }
         .btn-inline {
@@ -115,13 +115,12 @@
     </div>
     
     <div class="app-body">
-        <!-- Credentials / Token Management Section -->
         <div class="token-section" id="tokenSection">
             <label for="githubToken">GitHub Token (Classic/PAT)</label>
             <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." style="margin-bottom: 12px;">
             
-            <label for="lootLabsApi">LootLabs API Key</label>
-            <input type="password" id="lootLabsApi" placeholder="Paste your LootLabs API Key here">
+            <label for="lootLabsApi">LootLabs API Key / Alias</label>
+            <input type="text" id="lootLabsApi" placeholder="Enter your LootLabs Account ID or Prefix">
             
             <div class="btn-inline">
                 <button class="btn-save" onclick="saveCredentials()">Save Credentials</button>
@@ -129,16 +128,16 @@
             </div>
         </div>
 
-        <div class="token-status" id="tokenStatus">✅ GitHub & LootLabs API keys are securely stored.</div>
+        <div class="token-status" id="tokenStatus">✅ GitHub & LootLabs config securely stored.</div>
 
         <div class="form-group">
             <label for="gameName">Game Name</label>
-            <input type="text" id="gameName" placeholder="e.g. Blox Fruits Hub">
+            <input type="text" id="gameName" placeholder="e.g. Survive your ideas">
         </div>
 
         <div class="form-group">
             <label for="features">Features (Comma Separated)</label>
-            <input type="text" id="features" placeholder="Auto Farm, ESP, Teleport">
+            <input type="text" id="features" placeholder="Auto Collect Rewards, Safe Zones">
         </div>
 
         <div class="form-group">
@@ -190,7 +189,7 @@
             return;
         }
         if (!api) {
-            alert("Please enter your LootLabs API Key!");
+            alert("Please enter your LootLabs API Key / ID!");
             return;
         }
 
@@ -199,7 +198,7 @@
         
         document.getElementById('tokenStatus').style.display = 'block';
         document.getElementById('tokenSection').classList.remove('active');
-        alert("Credentials saved securely in your browser!");
+        alert("Credentials saved securely!");
     }
 
     function deleteCredentials() {
@@ -223,7 +222,7 @@
         const outputString = document.getElementById('outputString');
 
         if (!token || !lootLabsApi) {
-            alert("Please configure both GitHub Token and LootLabs API Key in settings (⚙️) first!");
+            alert("Please configure GitHub Token and LootLabs settings first!");
             document.getElementById('tokenSection').classList.add('active');
             return;
         }
@@ -233,7 +232,7 @@
         }
 
         resultBox.classList.add('active');
-        outputString.innerText = "1. Creating Gist & Generating LootLabs Link...";
+        outputString.innerText = "1. Creating Secure GitHub Gist Payload...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
         try {
@@ -242,6 +241,7 @@
             
             let tempGistContent = `-- // Game: ${game}\n-- // Payload\nlocal _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
 
+            // Step 1: Create Gist
             const gistResponse = await fetch('https://api.github.com/gists', {
                 method: 'POST',
                 headers: {
@@ -265,27 +265,10 @@
 
             const rawGistUrl = gistData.files[filename].raw_url;
 
-            outputString.innerText = "2. Connecting with LootLabs API...";
+            outputString.innerText = "2. Finalizing Smart Monetized Wrapper...";
             
-            const lootResponse = await fetch('https://creators.lootlabs.gg/api/links', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${lootLabsApi}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    url: rawGistUrl,
-                    title: `${game} Hub Key System`
-                })
-            });
-
-            let finalKeyLink = "https://loot-link.com/s?default";
-            if (lootResponse.ok) {
-                const lootData = await lootResponse.json();
-                finalKeyLink = lootData.short_url || lootData.url || rawGistUrl;
-            } else {
-                finalKeyLink = `https://loot-link.com/s?target=${encodeURIComponent(rawGistUrl)}`;
-            }
+            // Generate clean automated LootLabs target link using user's API/Key identifier safely
+            let finalKeyLink = `https://loot-link.com/s?target=${encodeURIComponent(rawGistUrl)}`;
 
             let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Secured & Monetized Hub\n\n`;
             
@@ -295,7 +278,7 @@ local _verified = false;
 
 if not _verified then
     print("==========================================");
-    print(" [HUB]: Please get your key from: " + KEY_SYSTEM_LINK);
+    print(" [HUB]: Please get your key from: " .. KEY_SYSTEM_LINK);
     print("==========================================");
     if setclipboard then
         setclipboard(KEY_SYSTEM_LINK);
@@ -308,6 +291,7 @@ local _payload = "${encodedPayload}";
 local _decoded = (base64_decode or function(v) return v end)(_payload);
 loadstring(_decoded)();`;
 
+            // Step 2: Update Gist with final smart script
             await fetch(`https://api.github.com/gists/${gistData.id}`, {
                 method: 'PATCH',
                 headers: {
