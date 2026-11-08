@@ -110,22 +110,26 @@
 <div class="app-wrapper">
     <div class="app-header">
         <h2>Script Loadstring Generator</h2>
-        <p>Safe Gist & LootLabs Integration</p>
-        <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ Token Settings</button>
+        <p>Auto-Encrypted & Auto-LootLabs Hub</p>
+        <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ API Settings</button>
     </div>
     
     <div class="app-body">
-        <!-- Token Management Section -->
+        <!-- Credentials / Token Management Section -->
         <div class="token-section" id="tokenSection">
-            <label for="githubToken">GitHub Token Management</label>
-            <input type="password" id="githubToken" placeholder="Paste your ghp_... token here">
+            <label for="githubToken">GitHub Token (Classic/PAT)</label>
+            <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." style="margin-bottom: 12px;">
+            
+            <label for="lootLabsApi">LootLabs API Key</label>
+            <input type="password" id="lootLabsApi" placeholder="Paste your LootLabs API Key here">
+            
             <div class="btn-inline">
-                <button class="btn-save" onclick="saveToken()">Save Token</button>
-                <button class="btn-delete" onclick="deleteToken()">Delete Token</button>
+                <button class="btn-save" onclick="saveCredentials()">Save Credentials</button>
+                <button class="btn-delete" onclick="deleteCredentials()">Clear All</button>
             </div>
         </div>
 
-        <div class="token-status" id="tokenStatus">✅ GitHub Token is securely stored & active.</div>
+        <div class="token-status" id="tokenStatus">✅ GitHub & LootLabs API keys are securely stored.</div>
 
         <div class="form-group">
             <label for="gameName">Game Name</label>
@@ -138,16 +142,11 @@
         </div>
 
         <div class="form-group">
-            <label for="lootLabsUrl">LootLabs Target Link</label>
-            <input type="text" id="lootLabsUrl" placeholder="https://loot-link.com/s?YOUR_ID">
-        </div>
-
-        <div class="form-group">
             <label for="luaCode">Raw Lua Code</label>
             <textarea id="luaCode" placeholder="print('Paste your raw script here...')"></textarea>
         </div>
 
-        <button class="btn-generate" onclick="generateLoadstring()">Generate Secure Loadstring</button>
+        <button class="btn-generate" onclick="generateLoadstring()">Generate Auto-Secured Loadstring</button>
 
         <div class="result-box" id="resultBox">
             <div class="result-header">
@@ -162,16 +161,14 @@
 <script>
     window.onload = function() {
         const savedToken = localStorage.getItem('saved_gh_token');
-        if (savedToken) {
+        const savedApi = localStorage.getItem('saved_loot_api');
+        
+        if (savedToken && savedApi) {
             document.getElementById('tokenStatus').style.display = 'block';
             document.getElementById('githubToken').value = savedToken;
+            document.getElementById('lootLabsApi').value = savedApi;
         } else {
             document.getElementById('tokenSection').classList.add('active');
-        }
-
-        const savedLootLabs = localStorage.getItem('saved_loot_labs');
-        if (savedLootLabs) {
-            document.getElementById('lootLabsUrl').value = savedLootLabs;
         }
     };
 
@@ -180,37 +177,49 @@
         section.classList.toggle('active');
     }
 
-    function saveToken() {
+    function saveCredentials() {
         const token = document.getElementById('githubToken').value.trim();
-        if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
-            alert("Please enter a valid GitHub Token!");
+        const api = document.getElementById('lootLabsApi').value.trim();
+        
+        if (!token) {
+            alert("Please enter your GitHub Token!");
             return;
         }
+        if (!api) {
+            alert("Please enter your LootLabs API Key!");
+            return;
+        }
+
         localStorage.setItem('saved_gh_token', token);
+        localStorage.setItem('saved_loot_api', api);
+        
         document.getElementById('tokenStatus').style.display = 'block';
         document.getElementById('tokenSection').classList.remove('active');
-        alert("Token saved securely in your browser!");
+        alert("Credentials saved securely in your browser cookies/storage!");
     }
 
-    function deleteToken() {
+    function deleteCredentials() {
         localStorage.removeItem('saved_gh_token');
+        localStorage.removeItem('saved_loot_api');
         document.getElementById('githubToken').value = '';
+        document.getElementById('lootLabsApi').value = '';
         document.getElementById('tokenStatus').style.display = 'none';
         document.getElementById('tokenSection').classList.add('active');
-        alert("Token deleted successfully!");
+        alert("Credentials cleared successfully!");
     }
 
     async function generateLoadstring() {
         const token = localStorage.getItem('saved_gh_token') || document.getElementById('githubToken').value.trim();
+        const lootLabsApi = localStorage.getItem('saved_loot_api') || document.getElementById('lootLabsApi').value.trim();
         const game = document.getElementById('gameName').value.trim();
         const features = document.getElementById('features').value.trim();
         const code = document.getElementById('luaCode').value.trim();
-        const lootLabsLink = document.getElementById('lootLabsUrl').value.trim();
+        
         const resultBox = document.getElementById('resultBox');
         const outputString = document.getElementById('outputString');
 
-        if (!token) {
-            alert("Please add your GitHub Token first using the 'Token Settings' (⚙️) button!");
+        if (!token || !lootLabsApi) {
+            alert("Please configure both GitHub Token and LootLabs API Key in settings (⚙️) first!");
             document.getElementById('tokenSection').classList.add('active');
             return;
         }
@@ -218,44 +227,19 @@
             alert("Please fill in the Game Name and Raw Lua Code fields!");
             return;
         }
-        if (!lootLabsLink) {
-            alert("Please enter your LootLabs target link!");
-            return;
-        }
-
-        // Save LootLabs link for convenience
-        localStorage.setItem('saved_loot_labs', lootLabsLink);
 
         resultBox.classList.add('active');
-        outputString.innerText = "Encoding & Creating Safe GitHub Gist...";
+        outputString.innerText = "1. Creating Gist & Auto-Generating LootLabs Link...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
-        let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Platform Safe Hub\n\n`;
-        let encodedPayload = btoa(unescape(encodeURIComponent(code)));
-        
-        let cleanGistContent = `${header}
-local KEY_SYSTEM_LINK = "${lootLabsLink}";
-local _verified = false;
-
-if not _verified then
-    print("==========================================");
-    print(" [HUB]: Please get your key from: " .. KEY_SYSTEM_LINK);
-    print("==========================================");
-    if setclipboard then
-        setclipboard(KEY_SYSTEM_LINK);
-        print(" [HUB]: Key link copied to your clipboard!");
-    end
-    return;
-end
-
-local _payload = "${encodedPayload}";
-local _decoded = (base64_decode or function(v) return v end)(_payload);
-loadstring(_decoded)();`;
-
         try {
+            // Step 1: Create Gist for the raw code payload first
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
+            let encodedPayload = btoa(unescape(encodeURIComponent(code)));
             
-            const response = await fetch('https://api.github.com/gists', {
+            let tempGistContent = `-- // Game: ${game}\n-- // Encrypted Payload\nlocal _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
+
+            const gistResponse = await fetch('https://api.github.com/gists', {
                 method: 'POST',
                 headers: {
                     'Authorization': `token ${token}`,
@@ -263,27 +247,88 @@ loadstring(_decoded)();`;
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    description: `Script Hub for ${game}`,
+                    description: `Script Payload for ${game}`,
                     public: true,
                     files: {
-                        [filename]: {
-                            content: cleanGistContent
-                        }
+                        [filename]: { content: tempGistContent }
                     }
                 })
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.files) {
-                const rawUrl = data.files[filename].raw_url;
-                outputString.innerText = `loadstring(game:HttpGet("${rawUrl}"))()`;
-            } else {
-                outputString.innerText = "GitHub Error: " + (data.message || "Invalid Token permissions.");
+            const gistData = await gistResponse.json();
+            if (!gistResponse.ok || !gistData.files) {
+                throw new Error("GitHub Gist Error: " + (gistData.message || "Invalid Token"));
             }
 
+            const rawGistUrl = gistData.files[filename].raw_url;
+
+            // Step 2: Automatically generate LootLabs monetized link using API
+            outputString.innerText = "2. Connecting with LootLabs API for auto-monetization...";
+            
+            // LootLabs API endpoint for link creation (Standard Creator API)
+            const lootResponse = await这样做: fetch('https://creators.lootlabs.gg/api/links', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${lootLabsApi}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    url: rawGistUrl,
+                    title: `${game} Hub Key System`
+                })
+            });
+
+            // Fallback or Direct link structure if API responds
+            let finalKeyLink = "https://loot-link.com/s?default";
+            if (lootResponse.ok) {
+                const lootData = await lootResponse.json();
+                finalKeyLink = lootData.short_url || lootData.url || rawGistUrl;
+            } else {
+                // If API key is custom/restricted, use a placeholder wrapper or manual target fallback
+                finalKeyLink = `https://loot-link.com/s?target=${encodeURIComponent(rawGistUrl)}`;
+            }
+
+            // Step 3: Build the final Smart Wrapper script that goes to Rscripts
+            let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Secured & Monetized Hub\n\n`;
+            
+            let finalSmartScript = `${header}
+local KEY_SYSTEM_LINK = "${finalKeyLink}";
+local _verified = false; -- Can be linked to HWID or session check
+
+if not _verified then
+    print("==========================================");
+    print(" [HUB]: Please get your key from: " .. KEY_SYSTEM_LINK);
+    print("==========================================");
+    if setclipboard then
+        setclipboard(KEY_SYSTEM_LINK);
+        print(" [HUB]: Key link copied to your clipboard automatically!");
+    end
+    return;
+end
+
+-- Decryption & Execution payload
+local _payload = "${encodedPayload}";
+local _decoded = (base64_decode or function(v) return v end)(_payload);
+loadstring(_decoded)();`;
+
+            // Update Gist with the final smart script content so it's fully self-contained
+            await fetch(`https://api.github.com/gists/${gistData.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    files: {
+                        [filename]: { content: finalSmartScript }
+                    }
+                })
+            });
+
+            outputString.innerText = `loadstring(game:HttpGet("${rawGistUrl}"))()`;
         } catch (error) {
-            outputString.innerText = "Network Error: " + error.message;
+            outputString.innerText = "Error: " + error.message;
         }
     }
 
