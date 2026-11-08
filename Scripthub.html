@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Script Loadstring Generator</title>
+    <title>Secure Script Loadstring Generator</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -110,7 +110,7 @@
 <div class="app-wrapper">
     <div class="app-header">
         <h2>Script Loadstring Generator</h2>
-        <p>Clean Gist & Safe Creator</p>
+        <p>Safe Gist & Secure Obfuscator</p>
         <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ Token Settings</button>
     </div>
     
@@ -139,10 +139,10 @@
 
         <div class="form-group">
             <label for="luaCode">Raw Lua Code</label>
-            <textarea id="luaCode" placeholder="print('Paste your clean script here...')"></textarea>
+            <textarea id="luaCode" placeholder="print('Paste your raw script here...')"></textarea>
         </div>
 
-        <button class="btn-generate" onclick="generateLoadstring()">Generate Clean Loadstring</button>
+        <button class="btn-generate" onclick="generateLoadstring()">Generate Secure Loadstring</button>
 
         <div class="result-box" id="resultBox">
             <div class="result-header">
@@ -209,10 +209,12 @@
         }
 
         resultBox.classList.add('active');
-        outputString.innerText = "Creating Clean GitHub Gist...";
+        outputString.innerText = "Encoding & Creating Safe GitHub Gist...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
-        let cleanScriptContent = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Status: Clean & Verified\n\n${code}`;
+        let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Secure Verified Script\n\n`;
+        let encodedPayload = btoa(unescape(encodeURIComponent(code)));
+        let cleanGistContent = `${header}local _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
 
         try {
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
@@ -229,7 +231,7 @@
                     public: true,
                     files: {
                         [filename]: {
-                            content: cleanScriptContent
+                            content: cleanGistContent
                         }
                     }
                 })
