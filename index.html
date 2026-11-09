@@ -98,7 +98,7 @@
             padding: 16px;
             display: none;
         }
-        .result-box.active { display: block; }
+        .result-box.active { display: block !important; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .btn-copy { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
         pre { background-color: #030712; padding: 14px; border-radius: 8px; border: 1px solid #374151; overflow-x: auto; word-break: break-all; font-family: monospace; font-size: 13px; color: #38bdf8; }
@@ -207,7 +207,7 @@
         const token = localStorage.getItem('saved_gh_token') || document.getElementById('githubToken').value.trim();
         const lootLabsBase = localStorage.getItem('saved_loot_api') || document.getElementById('lootLabsApi').value.trim();
         const game = document.getElementById('gameName').value.trim();
-        const features = document.getElementById(/features/).value.trim();
+        const features = document.getElementById('features').value.trim();
         const code = document.getElementById('luaCode').value.trim();
         
         const resultBox = document.getElementById('resultBox');
@@ -231,7 +231,6 @@
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
             let encodedPayload = btoa(unescape(encodeURIComponent(code)));
 
-            // Professional Lua Script containing blocking Key UI & Verification
             let proScriptContent = `
 -- // ${game} - Pro Key System & Secured Loader
 local Players = game:GetService("Players")
@@ -239,7 +238,7 @@ local CoreGui = game:GetService("CoreGui")
 local Player = Players.LocalPlayer
 
 local KEY_LINK = "${lootLabsBase}";
-local VALID_KEY = "VORYZEN-2026-KEY"; -- You can change or integrate dynamic check
+local VALID_KEY = "VORYZEN-2026-KEY";
 
 if CoreGui:FindFirstChild("VoryzenKeyUI") then
     CoreGui.VoryzenKeyUI:Destroy()
@@ -276,7 +275,6 @@ GetKeyBtn.Position = UDim2.new(0.05, 0, 0, 55)
 GetKeyBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
 GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 GetKeyBtn.Text = "Get Key (Copy Link)"
-GetKeyBtn.TextSize.Font = Enum.Font.GothamSemibold
 GetKeyBtn.Font = Enum.Font.GothamSemibold
 GetKeyBtn.Parent = MainFrame
 Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
@@ -313,7 +311,6 @@ Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
 VerifyBtn.MouseButton1Click:Connect(function()
     if KeyBox.Text == VALID_KEY or KeyBox.Text ~= "" then
         ScreenGui:Destroy()
-        -- Decrypt and Execute Payload
         local _payload = "${encodedPayload}";
         local _decoded = (base64_decode or function(v) return v end)(_payload);
         loadstring(_decoded)();
@@ -323,10 +320,9 @@ VerifyBtn.MouseButton1Click:Connect(function()
 end)
 `;
 
-            // Step 1: Create Gist
             const gistResponse = await fetch('https://api.github.com/gists', {
                 method: 'POST',
-                    headers: {
+                headers: {
                     'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json'
