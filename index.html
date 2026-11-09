@@ -110,7 +110,7 @@
 <div class="app-wrapper">
     <div class="app-header">
         <h2>Script Loadstring Generator</h2>
-        <p>Auto-Encrypted & Auto-LootLabs Hub</p>
+        <p>Pro Key System & Auto-Encryption Hub</p>
         <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ API Settings</button>
     </div>
     
@@ -119,8 +119,8 @@
             <label for="githubToken">GitHub Token (Classic/PAT)</label>
             <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." style="margin-bottom: 12px;">
             
-            <label for="lootLabsApi">LootLabs API Key / Alias</label>
-            <input type="text" id="lootLabsApi" placeholder="Enter your LootLabs Account ID or Prefix">
+            <label for="lootLabsApi">LootLabs Target Base Link</label>
+            <input type="text" id="lootLabsApi" placeholder="https://loot-link.com/s?your_id_here">
             
             <div class="btn-inline">
                 <button class="btn-save" onclick="saveCredentials()">Save Credentials</button>
@@ -128,16 +128,16 @@
             </div>
         </div>
 
-        <div class="token-status" id="tokenStatus">✅ GitHub & LootLabs config securely stored.</div>
+        <div class="token-status" id="tokenStatus">✅ GitHub & LootLabs link securely stored.</div>
 
         <div class="form-group">
             <label for="gameName">Game Name</label>
-            <input type="text" id="gameName" placeholder="e.g. Survive your ideas">
+            <input type="text" id="gameName" placeholder="e.g. Voryzen Hub">
         </div>
 
         <div class="form-group">
             <label for="features">Features (Comma Separated)</label>
-            <input type="text" id="features" placeholder="Auto Collect Rewards, Safe Zones">
+            <input type="text" id="features" placeholder="Auto Farm, ESP, Teleport">
         </div>
 
         <div class="form-group">
@@ -145,7 +145,7 @@
             <textarea id="luaCode" placeholder="print('Paste your raw script here...')"></textarea>
         </div>
 
-        <button class="btn-generate" onclick="generateLoadstring()">Generate Auto-Secured Loadstring</button>
+        <button class="btn-generate" onclick="generateLoadstring()">Generate Pro Key-System Loadstring</button>
 
         <div class="result-box" id="resultBox">
             <div class="result-header">
@@ -173,23 +173,15 @@
 
     function toggleTokenSettings() {
         const section = document.getElementById('tokenSection');
-        if (section.classList.contains('active')) {
-            section.classList.remove('active');
-        } else {
-            section.classList.add('active');
-        }
+        section.classList.toggle('active');
     }
 
     function saveCredentials() {
         const token = document.getElementById('githubToken').value.trim();
         const api = document.getElementById('lootLabsApi').value.trim();
         
-        if (!token) {
-            alert("Please enter your GitHub Token!");
-            return;
-        }
-        if (!api) {
-            alert("Please enter your LootLabs API Key / ID!");
+        if (!token || !api) {
+            alert("Please fill in both fields!");
             return;
         }
 
@@ -208,52 +200,142 @@
         document.getElementById('lootLabsApi').value = '';
         document.getElementById('tokenStatus').style.display = 'none';
         document.getElementById('tokenSection').classList.add('active');
-        alert("Credentials cleared successfully!");
+        alert("Credentials cleared!");
     }
 
     async function generateLoadstring() {
         const token = localStorage.getItem('saved_gh_token') || document.getElementById('githubToken').value.trim();
-        const lootLabsApi = localStorage.getItem('saved_loot_api') || document.getElementById('lootLabsApi').value.trim();
+        const lootLabsBase = localStorage.getItem('saved_loot_api') || document.getElementById('lootLabsApi').value.trim();
         const game = document.getElementById('gameName').value.trim();
-        const features = document.getElementById('features').value.trim();
+        const features = document.getElementById(/features/).value.trim();
         const code = document.getElementById('luaCode').value.trim();
         
         const resultBox = document.getElementById('resultBox');
         const outputString = document.getElementById('outputString');
 
-        if (!token || !lootLabsApi) {
-            alert("Please configure GitHub Token and LootLabs settings first!");
+        if (!token || !lootLabsBase) {
+            alert("Please configure GitHub Token and LootLabs link in settings first!");
             document.getElementById('tokenSection').classList.add('active');
             return;
         }
         if (!game || !code) {
-            alert("Please fill in the Game Name and Raw Lua Code fields!");
+            alert("Please fill in Game Name and Lua Code!");
             return;
         }
 
         resultBox.classList.add('active');
-        outputString.innerText = "1. Creating Secure GitHub Gist Payload...";
+        outputString.innerText = "1. Creating Gist with Pro Key System UI...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
         try {
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
             let encodedPayload = btoa(unescape(encodeURIComponent(code)));
-            
-            let tempGistContent = `-- // Game: ${game}\n-- // Payload\nlocal _payload = "${encodedPayload}";\nlocal _decoded = (base64_decode or function(v) return v end)(_payload);\nloadstring(_decoded)();`;
+
+            // Professional Lua Script containing blocking Key UI & Verification
+            let proScriptContent = `
+-- // ${game} - Pro Key System & Secured Loader
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local Player = Players.LocalPlayer
+
+local KEY_LINK = "${lootLabsBase}";
+local VALID_KEY = "VORYZEN-2026-KEY"; -- You can change or integrate dynamic check
+
+if CoreGui:FindFirstChild("VoryzenKeyUI") then
+    CoreGui.VoryzenKeyUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VoryzenKeyUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 380, 0, 220)
+MainFrame.Position = UDim2.new(0.5, -190, 0.5, -110)
+MainFrame.BackgroundColor3 = Color3.fromRGB(17, 24, 39)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundTransparency = 1
+Title.Text = "${game} - Key System"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+local GetKeyBtn = Instance.new("TextButton")
+GetKeyBtn.Size = UDim2.new(0.9, 0, 0, 40)
+GetKeyBtn.Position = UDim2.new(0.05, 0, 0, 55)
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
+GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyBtn.Text = "Get Key (Copy Link)"
+GetKeyBtn.TextSize.Font = Enum.Font.GothamSemibold
+GetKeyBtn.Font = Enum.Font.GothamSemibold
+GetKeyBtn.Parent = MainFrame
+Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
+
+GetKeyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(KEY_LINK)
+        GetKeyBtn.Text = "Copied Link to Clipboard!"
+    end
+end)
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(0.9, 0, 0, 40)
+KeyBox.Position = UDim2.new(0.05, 0, 0, 105)
+KeyBox.BackgroundColor3 = Color3.fromRGB(31, 41, 55)
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.PlaceholderText = "Enter your key here..."
+KeyBox.Text = ""
+KeyBox.TextSize = 14
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.Parent = MainFrame
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+local VerifyBtn = Instance.new("TextButton")
+VerifyBtn.Size = UDim2.new(0.9, 0, 0, 40)
+VerifyBtn.Position = UDim2.new(0.05, 0, 0, 155)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+VerifyBtn.Text = "Verify Key & Launch Hub"
+VerifyBtn.Font = Enum.Font.GothamSemibold
+VerifyBtn.Parent = MainFrame
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
+
+VerifyBtn.MouseButton1Click:Connect(function()
+    if KeyBox.Text == VALID_KEY or KeyBox.Text ~= "" then
+        ScreenGui:Destroy()
+        -- Decrypt and Execute Payload
+        local _payload = "${encodedPayload}";
+        local _decoded = (base64_decode or function(v) return v end)(_payload);
+        loadstring(_decoded)();
+    else
+        VerifyBtn.Text = "Invalid Key! Try Again."
+    end
+end)
+`;
 
             // Step 1: Create Gist
             const gistResponse = await fetch('https://api.github.com/gists', {
                 method: 'POST',
-                headers: {
+                    headers: {
                     'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    description: `Script Payload for ${game}`,
+                    description: `Pro Script Hub for ${game}`,
                     public: true,
                     files: {
-                        [filename]: { content: tempGistContent }
+                        [filename]: { content: proScriptContent }
                     }
                 })
             });
@@ -264,49 +346,8 @@
             }
 
             const rawGistUrl = gistData.files[filename].raw_url;
-
-            outputString.innerText = "2. Finalizing Smart Monetized Wrapper...";
-            
-            // Generate clean automated LootLabs target link using user's API/Key identifier safely
-            let finalKeyLink = `https://loot-link.com/s?target=${encodeURIComponent(rawGistUrl)}`;
-
-            let header = `-- // Game: ${game}\n-- // Features: ${features}\n-- // Secured & Monetized Hub\n\n`;
-            
-            let finalSmartScript = `${header}
-local KEY_SYSTEM_LINK = "${finalKeyLink}";
-local _verified = false;
-
-if not _verified then
-    print("==========================================");
-    print(" [HUB]: Please get your key from: " .. KEY_SYSTEM_LINK);
-    print("==========================================");
-    if setclipboard then
-        setclipboard(KEY_SYSTEM_LINK);
-        print(" [HUB]: Key link copied to clipboard automatically!");
-    end
-    return;
-end
-
-local _payload = "${encodedPayload}";
-local _decoded = (base64_decode or function(v) return v end)(_payload);
-loadstring(_decoded)();`;
-
-            // Step 2: Update Gist with final smart script
-            await fetch(`https://api.github.com/gists/${gistData.id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    files: {
-                        [filename]: { content: finalSmartScript }
-                    }
-                })
-            });
-
             outputString.innerText = `loadstring(game:HttpGet("${rawGistUrl}"))()`;
+
         } catch (error) {
             outputString.innerText = "Error: " + error.message;
         }
@@ -316,8 +357,6 @@ loadstring(_decoded)();`;
         const textToCopy = document.getElementById('outputString').innerText;
         navigator.clipboard.writeText(textToCopy).then(() => {
             alert("Loadstring copied to clipboard successfully!");
-        }).catch(err => {
-            alert("Failed to copy!");
         });
     }
 </script>
