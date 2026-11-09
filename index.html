@@ -101,10 +101,8 @@
         .result-box.active { display: block !important; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .btn-copy { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        pre { background-color: #030712; padding: 14px; border-radius: 8px; border: 1px solid #374151; overflow-x: auto; word-break: break-all; font-family: monospace; font-size: 13px; color: #38bdf8; margin-bottom: 12px; }
+        pre { background-color: #030712; padding: 14px; border-radius: 8px; border: 1px solid #374151; overflow-x: auto; word-break: break-all; font-family: monospace; font-size: 13px; color: #38bdf8; }
         .token-status { font-size: 12px; color: #10b981; margin-bottom: 15px; display: none; }
-        .test-link-box { font-size: 12px; color: #9ca3af; word-break: break-all; background: #030712; padding: 10px; border-radius: 6px; border: 1px solid #374151; }
-        .test-link-box a { color: #6366f1; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -112,7 +110,7 @@
 <div class="app-wrapper">
     <div class="app-header">
         <h2>Script Loadstring Generator</h2>
-        <p>Pro Key System & Fully Automated API Hub</p>
+        <p>Pro Key System & Secure Hub</p>
         <button class="settings-icon" onclick="toggleTokenSettings()">⚙️ API Settings</button>
     </div>
     
@@ -122,7 +120,10 @@
             <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." style="margin-bottom: 12px;">
             
             <label for="lootLabsToken">LootLabs Master API Token</label>
-            <input type="password" id="lootLabsToken" placeholder="Your LootLabs API key..." style="margin-bottom: 12px;">
+            <input type="password" id="lootLabsToken" placeholder="Your master API token..." style="margin-bottom: 12px;">
+            
+            <label for="lootLabsBase">LootLabs Default / Base Target Link (3rd Box)</label>
+            <input type="text" id="lootLabsBase" placeholder="https://loot-link.com/s?your_id_here" style="margin-bottom: 12px;">
             
             <div class="btn-inline">
                 <button class="btn-save" onclick="saveCredentials()">Save Credentials</button>
@@ -130,7 +131,7 @@
             </div>
         </div>
 
-        <div class="token-status" id="tokenStatus">✅ Secure Tokens Stored in Browser.</div>
+        <div class="token-status" id="tokenStatus">✅ Credentials securely stored in browser.</div>
 
         <div class="form-group">
             <label for="gameName">Game Name</label>
@@ -155,9 +156,6 @@
                 <button class="btn-copy" onclick="copyToClipboard()">Copy Loadstring</button>
             </div>
             <pre id="outputString">Processing...</pre>
-            
-            <label style="margin-bottom: 4px; color:#9ca3af; font-size:11px;">Auto-Generated LootLabs Link (For Testing):</label>
-            <div class="test-link-box" id="testLinkOutput">Generating link...</div>
         </div>
     </div>
 </div>
@@ -166,11 +164,13 @@
     window.onload = function() {
         const savedToken = localStorage.getItem('saved_gh_token');
         const savedLootToken = localStorage.getItem('saved_loot_token');
+        const savedBase = localStorage.getItem('saved_loot_base');
         
-        if (savedToken && savedLootToken) {
+        if (savedToken && savedBase) {
             document.getElementById('tokenStatus').style.display = 'block';
             document.getElementById('githubToken').value = savedToken;
-            document.getElementById('lootLabsToken').value = savedLootToken;
+            if (savedLootToken) document.getElementById('lootLabsToken').value = savedLootToken;
+            document.getElementById('lootLabsBase').value = savedBase;
         } else {
             document.getElementById('tokenSection').classList.add('active');
         }
@@ -184,14 +184,16 @@
     function saveCredentials() {
         const token = document.getElementById('githubToken').value.trim();
         const lootToken = document.getElementById('lootLabsToken').value.trim();
+        const lootBase = document.getElementById('lootLabsBase').value.trim();
         
-        if (!token || !lootToken) {
-            alert("Please fill in both GitHub Token and LootLabs API Token!");
+        if (!token || !lootBase) {
+            alert("Please fill in GitHub Token and Base Target Link!");
             return;
         }
 
         localStorage.setItem('saved_gh_token', token);
         localStorage.setItem('saved_loot_token', lootToken);
+        localStorage.setItem('saved_loot_base', lootBase);
         
         document.getElementById('tokenStatus').style.display = 'block';
         document.getElementById('tokenSection').classList.remove('active');
@@ -201,8 +203,10 @@
     function deleteCredentials() {
         localStorage.removeItem('saved_gh_token');
         localStorage.removeItem('saved_loot_token');
+        localStorage.removeItem('saved_loot_base');
         document.getElementById('githubToken').value = '';
         document.getElementById('lootLabsToken').value = '';
+        document.getElementById('lootLabsBase').value = '';
         document.getElementById('tokenStatus').style.display = 'none';
         document.getElementById('tokenSection').classList.add('active');
         alert("Credentials cleared!");
@@ -210,17 +214,16 @@
 
     async function generateLoadstring() {
         const token = localStorage.getItem('saved_gh_token') || document.getElementById('githubToken').value.trim();
-        const lootToken = localStorage.getItem('saved_loot_token') || document.getElementById('lootLabsToken').value.trim();
+        const lootBase = localStorage.getItem('saved_loot_base') || document.getElementById('lootLabsBase').value.trim();
         const game = document.getElementById('gameName').value.trim();
         const features = document.getElementById('features').value.trim();
         const code = document.getElementById('luaCode').value.trim();
         
         const resultBox = document.getElementById('resultBox');
         const outputString = document.getElementById('outputString');
-        const testLinkOutput = document.getElementById('testLinkOutput');
 
-        if (!token || !lootToken) {
-            alert("Please configure GitHub Token and LootLabs API Token in settings first!");
+        if (!token || !lootBase) {
+            alert("Please configure GitHub Token and Base Link in settings first!");
             document.getElementById('tokenSection').classList.add('active');
             return;
         }
@@ -230,65 +233,20 @@
         }
 
         resultBox.classList.add('active');
-        outputString.innerText = "1. Creating Gist on GitHub...";
-        testLinkOutput.innerText = "Waiting for Gist creation...";
+        outputString.innerText = "1. Creating Gist with Pro Key System UI...";
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
         try {
             const filename = `${game.toLowerCase().replace(/[^a-z0-9]/g, '_')}_hub.lua`;
             let encodedPayload = btoa(unescape(encodeURIComponent(code)));
 
-            // Step 1: Create Gist placeholder first to get raw URL
-            let tempScriptContent = `-- // ${game} - Generating...`;
-            const gistResponse = await fetch('https://api.github.com/gists', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    description: `Pro Script Hub for ${game}`,
-                    public: true,
-                    files: {
-                        [filename]: { content: tempScriptContent }
-                    }
-                })
-            });
-
-            const gistData = await gistResponse.json();
-            if (!gistResponse.ok || !gistData.files) {
-                throw new Error("GitHub Gist Error: " + (gistData.message || "Invalid Token"));
-            }
-
-            const rawGistUrl = gistData.files[filename].raw_url;
-
-            outputString.innerText = "2. Requesting Automated LootLabs Link via API...";
-
-            // Step 2: Automatically generate LootLabs link using API Token & Destination Gist URL
-            let finalLootLink = `https://loot-link.com/s?default_fallback`;
-            try {
-                const lootApiRes = await fetch(`https://loot-link.com/api/v1/link?token=${lootToken}&url=${encodeURIComponent(rawGistUrl)}`);
-                const lootApiData = await lootApiRes.json();
-                if (lootApiData && (lootApiData.url || lootApiData.link)) {
-                    finalLootLink = lootApiData.url || lootApiData.link;
-                }
-            } catch (err) {
-                console.warn("LootLabs API direct fetch fallback used:", err);
-                // Fallback simulation/format if CORS blocks direct browser-to-server API fetch
-                finalLootLink = `https://loot-link.com/s?dest=${encodeURIComponent(rawGistUrl)}`;
-            }
-
-            outputString.innerText = "3. Finalizing Secured UI & Encryption...";
-
-            // Step 3: Complete script content with automated dynamic KEY_LINK
             let proScriptContent = `
 -- // ${game} - Pro Key System & Secured Loader
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local Player = Players.LocalPlayer
 
-local KEY_LINK = "${finalLootLink}";
+local KEY_LINK = "${lootBase}";
 local VALID_KEY = "VORYZEN-2026-KEY";
 
 if CoreGui:FindFirstChild("VoryzenKeyUI") then
@@ -371,27 +329,32 @@ VerifyBtn.MouseButton1Click:Connect(function()
 end)
 `;
 
-            // Step 4: Update Gist with final secured script content
-            await fetch(`https://api.github.com/gists/${gistData.id}`, {
-                method: 'PATCH',
+            const gistResponse = await fetch('https://api.github.com/gists', {
+                method: 'POST',
                 headers: {
                     'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    description: `Pro Script Hub for ${game}`,
+                    public: true,
                     files: {
                         [filename]: { content: proScriptContent }
                     }
                 })
             });
 
+            const gistData = await gistResponse.json();
+            if (!gistResponse.ok || !gistData.files) {
+                throw new Error("GitHub Gist Error: " + (gistData.message || "Invalid Token"));
+            }
+
+            const rawGistUrl = gistData.files[filename].raw_url;
             outputString.innerText = `loadstring(game:HttpGet("${rawGistUrl}"))()`;
-            testLinkOutput.innerHTML = `<a href="${finalLootLink}" target="_blank">${finalLootLink}</a> (Tap to test ad flow directly)`;
 
         } catch (error) {
             outputString.innerText = "Error: " + error.message;
-            testLinkOutput.innerText = "Failed to generate automation link.";
         }
     }
 
