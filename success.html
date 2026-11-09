@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Unlocked - Success</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 10px;
+        }
+        .success-card {
+            width: 100%;
+            max-width: 450px;
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            padding: 30px 24px;
+            text-align: center;
+        }
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px auto;
+        }
+        h2 { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+        p { font-size: 14px; color: #9ca3af; margin-bottom: 24px; line-height: 1.5; }
+        .key-box-wrapper {
+            background: #1f2937;
+            border: 1px dashed #374151;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .key-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; font-weight: 600; }
+        .key-display {
+            font-family: monospace;
+            font-size: 16px;
+            color: #38bdf8;
+            background: #030712;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #374151;
+            word-break: break-all;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: opacity 0.2s;
+        }
+        .btn-action:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="success-card">
+    <div class="icon-circle">✓</div>
+    <h2>Task Completed Successfully!</h2>
+    <p>Aapne ad successfully cross kar liya hai. Neeche aapka script key mojood hai, isay copy karke game mein paste karein.</p>
+    
+    <div class="key-box-wrapper">
+        <div class="key-label">Your Access Key</div>
+        <div class="key-display" id="keyText">VORYZEN-2026-KEY</div>
+    </div>
+
+    <button class="btn-action" onclick="copyKey()">Copy Key to Clipboard</button>
+</div>
+
+<script>
+    function copyKey() {
+        const key = document.getElementById('keyText').innerText;
+        navigator.clipboard.writeText(key).then(() => {
+            alert("Key copied successfully! Now paste it in the game loader.");
+        });
+    }
+</script>
+
+</body>
+</html>
